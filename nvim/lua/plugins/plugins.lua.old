@@ -1,0 +1,395 @@
+return {
+  {
+    -- Language Server Protocol support --
+    { "neovim/nvim-lspconfig", },
+
+    -- Completion plugin --
+    { "hrsh7th/nvim-cmp", },
+
+    -- LSP completion source --
+    { "hrsh7th/cmp-nvim-lsp", },
+
+    -- Buffer completion source --
+    { "hrsh7th/cmp-buffer", },
+
+    -- Path completion source --
+    { "hrsh7th/cmp-path", },
+
+    -- Command-line completion source --
+    { "hrsh7th/cmp-cmdline", },
+
+    -- Snippet completion source --
+    { "saadparwaiz1/cmp_luasnip", },
+
+    -- Collection of useful snippets --
+    { "rafamadriz/friendly-snippets", },
+
+    -- Code navigation --
+    { "stevearc/aerial.nvim", },
+
+    -- Outline of symbols in a file --
+    { "simrat39/symbols-outline.nvim", },
+
+    -- Show keybindings --
+    { "folke/which-key.nvim", },
+
+
+    -- DAP --
+    { "nvim-neotest/nvim-nio", },
+    {
+      "rcarriga/nvim-dap-ui",
+      config = true,
+      keys = {
+        {
+          "<leader>du",
+          function()
+          require("dapui").toggle({})
+          end,
+          desc = "Dap UI"
+        },
+      },
+      dependencies = {
+        "jay-babu/mason-nvim-dap.nvim",
+        "leoluz/nvim-dap-go",
+        "mfussenegger/nvim-dap-python",
+        "nvim-neotest/nvim-nio",
+        "theHamsta/nvim-dap-virtual-text",
+      },
+      --[[
+      config = function()
+        require("dapui").setup({
+        layouts = {
+          {
+            elements = {
+              { id = "scopes", size = 0.25 },
+              { id = "stacks", size = 0.25 },
+              { id = "watches", size = 0.25 },
+              { id = "breakpoints", size = 0.25 },
+            },
+            position = "left",
+            size = 40,
+          },
+          {
+            elements = {
+              { id = "repl", size = 0.5 },
+              { id = "console", size = 0.5 },
+            },
+            position = "bottom",
+            size = 10,
+          },
+        },
+      })
+      end,
+      --]]
+    },
+    --[[
+    {
+      "theHamsta/nvim-dap-virtual-text",
+      config = function()
+      require("nvim-dap-virtual-text").setup({
+        enabled = true,
+        enabled_commands = true,
+        highlight_changed_variables = true,
+        highlight_new_as_changed = true,
+        commented = false,
+        only_first_definition = true,
+        all_references = false,
+        clear_on_continue = false,
+      })
+      end,
+    },
+    --]]
+    {
+      "mfussenegger/nvim-dap",
+      dependencies = {
+        "rcarriga/nvim-dap-ui",
+        "theHamsta/nvim-dap-virtual-text",
+      },
+      keys = {
+        {
+          "<leader>db",
+          function() require("dap").toggle_breakpoint() end,
+          desc = "Toggle Breakpoint"
+        },
+      },
+      config = function()
+      -- Setup nvim-dap-ui and virtual text
+      require("dapui").setup()
+      require("nvim-dap-virtual-text").setup()
+
+      -- DAP configuration for C/C++ (using gdb)
+      local dap = require("dap")
+      dap.adapters.gdb = {
+        type = "executable",
+        command = "/usr/bin/gdb",
+        args = { "-i", "dap" },
+        name = "gdb",
+      }
+      dap.configurations.c = {
+        name = "launch C GDB attach",
+        type = "gdb",
+        request = "attach",
+        target = "localhost:1234",
+        cwd = '${workspaceFolder}',
+      }
+
+      dap.configurations.cpp = {
+        {
+          name = "Launch C++ GDB",
+          type = "gdb",
+          request = "attach", -- "launch",
+          program = function()
+            return vim.fn.getcwd() .. '/build/test'
+          end,
+          cwd = '${workspaceFolder}',
+          stopAtEntry = true,
+          setupCommands = {
+            {
+              text = '-enable-pretty-printing',
+              description = 'Enable pretty printing in gdb',
+              ignoreFailures = false,
+            },
+          },
+          miDebuggerPath = "/usr/bin/gdb",
+        },
+      }
+      end,
+    },
+
+
+    -- Fuzzy finder --
+    {
+      "nvim-telescope/telescope.nvim",
+      dependencies = {
+        "nvim-lua/plenary.nvim",
+      },
+    },
+
+    {
+      "ibhagwan/fzf-lua",
+      dependencies = { "nvim-tree/nvim-web-devicons", },
+      opts = {},
+    },
+
+    -- Syntax highlighting --
+    { "nvim-treesitter/nvim-treesitter", },
+
+    -- Copilot --
+    {
+      "github/copilot.vim",
+      config = function()
+        vim.g.copilot_assume_mapped = true
+        vim.g.copilot_filetypes = {
+          ["*"] = true,
+        }
+      end,
+    },
+
+    -- icons for nvim-tree and lualine --
+    {
+      "nvim-tree/nvim-web-devicons",
+      opts = {
+
+      },
+    },
+
+    -- mason --
+    {
+      "williamboman/mason.nvim",
+      opts = {
+        ensure_installed = { "gdb" },
+      },
+    },
+    {
+      "jay-babu/mason-nvim-dap.nvim",
+      dependencies = "mason.nvim",
+      cmd = { "DapInstall", "DapUninstall" },
+      opts = {
+        automatic_installation = true,
+      },
+    },
+
+    -- cmake --
+    --[[
+    {
+      "Civitasv/cmake-tools.nvim",
+      dependencies = {
+        "nvim-lua/plenary.nvim",
+        "nvim-neotest/nvim-nio",
+      },
+      config = function()
+        require("cmake-tools").setup({
+          cmake_command = "cmake",                  -- default cmake command
+          cmake_build_directory = "build",          -- default build cmake_build_directory
+          cmake_generate_options = { "-G", "Ninja", },
+          cmake_build_options = {},
+          cmake_console_size = 20,
+          cmake_show_console = "only_on_error",
+          cmake_dap_configuration = {
+            name = "CMake Debug",
+            --type = "cppdbg",
+            type = "gdb",
+            request = "launch",
+            stopAtEntry = true,
+            runInTerminal = true,
+          },
+          cmake_dap_open_command = require("dap").repl.open,
+        })
+      end,
+    },
+    --]]
+    {
+      "Civitasv/cmake-tools.nvim",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      config = function()
+      require("cmake-tools").setup({
+        cmake_command = "cmake",
+        cmake_build_directory = "build",  -- Where your build folder is located
+        cmake_generate_options = { "-G", "Ninja" },
+        cmake_build_options = {},
+        cmake_console_size = 20,
+        cmake_show_console = "only_on_error",
+        cmake_dap_configuration = {
+          name = "CMake Debug",
+          type = "gdb",  -- Use gdb as the debugger
+          request = "launch",
+          stopAtEntry = true,
+          runInTerminal = true,
+        },
+        cmake_dap_open_command = require("dap").repl.open,
+      })
+      end,
+    },
+
+    --[[
+    -- debug --
+    {
+      "jay-babu/mason-nvim-dap.nvim",
+      dependencies = "mason.nvim",
+      cmd = {
+        "DapInstall",
+        "DapUninstall",
+      },
+      opts = {
+        automatic_installation = true,
+        --handlers = {},
+        ensure_installed = {
+          --"cppdbg",
+          "gdb",
+        },
+      },
+      --config = function()
+      --
+      --end,
+    },
+
+    {
+      "mfussenegger/nvim-dap",
+      config = function()
+        -- DAP setup for C/C++ debugging
+        local dap = require("dap")
+
+      dap.configurations.cpp = {
+        {
+          name = "Launch file",
+          type = "gdb", --"cppdbg",
+          request = "launch",
+          program = function()
+            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/build/your_executable', 'file')
+            --return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/build/your_executable', 'file')
+          end,
+          cwd = '${workspaceFolder}',
+          stopAtEntry = true,
+          setupCommands = {
+            {
+              text = '-enable-pretty-printing',
+              description = 'Enable pretty printing',
+              ignoreFailures = false,
+            },
+          },
+          miDebuggerPath = "/usr/bin/gdb",
+        },
+      }
+
+      require("dapui").setup()
+      require("nvim-dap-virtual-text").setup()
+
+      end,
+    },
+    --]]
+
+
+    -- Folder/Files Tree
+    {
+      "nvim-tree/nvim-tree.lua",
+      version = "*",
+      lazy = false,
+      dependencies = {
+        "nvim-tree/nvim-web-devicons",
+      },
+      config = function()
+        require("nvim-tree").setup ({
+          view = {
+            width = 50,
+          },
+          renderer = {
+            icons = {
+              show = {
+                file = true,
+                folder = true,
+                folder_arrow = true,
+                git = true,
+              },
+            },
+          },
+          git = {
+            enable = true,
+          },
+        })
+      end,
+    },
+
+
+
+    -- lualine --
+    {
+      "nvim-lualine/lualine.nvim",
+      dependencies = {
+        "nvim-tree/nvim-web-devicons",
+      },
+
+      config = function()
+        require("lualine").setup({
+          options = {
+            theme = "dracula",
+            icons_enabled = true,
+            section_separators = { left = '|', right = '|', },
+            component_separators = { left = '|', right = '|', },
+            disabled_filetypes = { "NvimTree", },
+          },
+          sections = {
+            lualine_a = { "mode", },
+            lualine_b = { "branch", "diff", "diagnostics", },
+            lualine_c = { { "filename", path = 1 }, },
+            lualine_x = { "encoding", "fileformat", "filetype", },
+            lualine_y = { "progress", },
+            lualine_z = { "location", },
+          },
+          inactive_sections = {
+            lualine_a = {},
+            lualine_b = {},
+            lualine_c = { "filename", },
+            lualine_x = { "location", },
+            lualine_y = {},
+            lualine_z = {},
+          },
+          extensions = {
+            "nvim-tree",
+            "fugitive",
+          }
+        })
+      end,
+    }
+  }
+}
+
