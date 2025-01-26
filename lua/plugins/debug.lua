@@ -2,11 +2,11 @@
 return {
     -- keep-sorted start block=yes
 
+    -- nvim-dap core
     {
         "mfussenegger/nvim-dap",
         lazy = true,
-        -- Copied from LazyVim/lua/lazyvim/plugins/extras/dap/core.lua and
-        -- modified.
+        -- from LazyVim/lua/lazyvim/plugins/extras/dap/core.lua and
         keys = {
             {
                 "<leader>db",
@@ -33,87 +33,119 @@ return {
             },
         },
     },
+
+    -- nvim-dap-ui visual debugging interface
     {
         "rcarriga/nvim-dap-ui",
         config = true,
         keys = {
             {
                 "<leader>du",
-                function()
-                require("dapui").toggle({})
+                function() require("dapui").toggle({})
                 end,
                 desc = "Dap UI"
             },
         },
         dependencies = {
-            -- keep-sorted start block=yes
-            {
-                "jay-babu/mason-nvim-dap.nvim",
-                ---@type MasonNvimDapSettings
-                opts = {
-                    -- This line is essential to making automatic installation work
-                    -- :exploding-brain
-                    handlers = {},
-                    automatic_installation = {
-                        -- These will be configured by separate plugins.
-                        exclude = {
-                            "delve",
-                            "python",
-                        },
-                    },
-                    -- DAP servers: Mason will be invoked to install these if necessary.
-                    ensure_installed = {
-                        "bash",
-                        "codelldb",
-                        "cppdbg",
-                        "php",
-                        "python",
-                    },
-                },
-                dependencies = {
-                    "mfussenegger/nvim-dap",
-                    "williamboman/mason.nvim",
-                },
-            },
-            {
-                "leoluz/nvim-dap-go",
-                config = true,
-                dependencies = {
-                    "mfussenegger/nvim-dap",
-                },
-                keys = {
-                    {
-                        "<leader>dt",
-                        function() require('dap-go').debug_test() end,
-                        desc = "Debug test"
-                    },
-                },
-            },
-            {
-                "mfussenegger/nvim-dap-python",
-                lazy = true,
-                config = function()
-                local python = vim.fn.expand("~/.local/share/nvim/mason/packages/debugpy/venv/bin/python")
-                require("dap-python").setup(python)
-                end,
-                -- Consider the mappings at
-                -- https://github.com/mfussenegger/nvim-dap-python?tab=readme-ov-file#mappings
-                dependencies = {
-                    "mfussenegger/nvim-dap",
-                },
-            },
-            {
-                "nvim-neotest/nvim-nio",
-            },
-            {
-                "theHamsta/nvim-dap-virtual-text",
-                config = true,
-                dependencies = {
-                    "mfussenegger/nvim-dap",
-                },
-            },
-            -- keep-sorted end
+            "mfussenegger/nvim-dap",
         },
     },
-    -- keep-sorted end
+
+    -- mason-nvim-dap for automatic installation of DAP servers
+    {
+        "jay-babu/mason-nvim-dap.nvim",
+        opts = {
+            handlers = {},
+            automatic_installation = {
+                exclude = { "python", },
+            },
+            ensure_installed = { "python", "codelldb", },  -- Make sure Python is included
+        },
+        dependencies = {
+            "mfussenegger/nvim-dap",
+            "williamboman/mason.nvim",
+        },
+    },
+
+    -- nvim-dap-python configuration for Python debugging
+    {
+        "mfussenegger/nvim-dap-python",
+        lazy = true,
+        config = function()
+        local python_path = vim.fn.expand("~/.virtualenvs/debugpy/bin/python")
+        require("dap-python").setup(python_path, {
+            justMyCode = false,  -- Debug all code (not just user code)
+        })
+        end,
+        dependencies = { "mfussenegger/nvim-dap" },
+    },
+
+
+    -- nvim-dap-cpp setup for C/C++ debugging
+    {
+        "mfussenegger/nvim-dap",
+        config = function()
+        -- Configure GDB Adapter
+        require('dap').adapters.gdb = {
+            type = "executable",
+            command = "/usr/bin/gdb",  -- GDB executable
+            args = { "-i", "dap" },
+            name = "gdb",
+        }
+
+        -- Debugging configurations for C and C++
+        require('dap').configurations.c = {
+            {
+                name = "Launch executable with GDB",
+                type = "gdb",
+                request = "launch",
+                --request = "attach",
+                target = "localhost:1234",
+                program = function()
+                    return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/build/', 'file')
+                end,
+                cwd = "${workspaceFolder}",
+                stopAtEntry = true,
+            },
+        }
+
+        require('dap').configurations.cpp = {
+            {
+                name = "Launch C++ executable with GDB",
+                type = "gdb",
+                --request = "attach",
+                request = "launch",
+                target = "localhost:1234",
+                program = function()
+                    return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/build/', 'file')
+                end,
+                cwd = "${workspaceFolder}",
+                stopAtEntry = true,
+                setupCommands = {
+                    {
+                        text = '-enable-pretty-printing',
+                        description = 'Enable pretty printing in gdb',
+                        ignoreFailures = false,
+                    },
+                },
+                miDebuggerPath = "/usr/bin/gdb",
+            },
+        }
+        end,
+    },
+
+    {
+        "nvim-neotest/nvim-nio",
+    },
+    -- nvim-dap-virtual-text for inline variable display during debugging
+    {
+        "theHamsta/nvim-dap-virtual-text",
+        config = true,
+        dependencies = { "mfussenegger/nvim-dap" },
+    },
+    -- nvim-telescope for integration with DAP (optional, for better navigation)
+    {
+        "nvim-telescope/telescope-dap.nvim",
+        dependencies = { "mfussenegger/nvim-dap", "nvim-telescope/telescope.nvim" },
+    },
 }
