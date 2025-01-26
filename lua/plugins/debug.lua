@@ -137,15 +137,35 @@ return {
     {
         "nvim-neotest/nvim-nio",
     },
+
     -- nvim-dap-virtual-text for inline variable display during debugging
     {
         "theHamsta/nvim-dap-virtual-text",
-        config = true,
+        config = function()
+        require("nvim-dap-virtual-text").setup({
+            enabled = true,
+            enabled_for_current_line = true,
+            highlight_changed_variables = true,
+            highlight_new_as_changed = true,
+            show_stop_reason = "always",
+            commented = true,
+        })
+        end,
         dependencies = { "mfussenegger/nvim-dap" },
     },
+
+
     -- nvim-telescope for integration with DAP (optional, for better navigation)
     {
         "nvim-telescope/telescope-dap.nvim",
         dependencies = { "mfussenegger/nvim-dap", "nvim-telescope/telescope.nvim" },
     },
+
+
+
+
+
+
 }
+
+

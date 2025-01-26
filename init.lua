@@ -29,11 +29,15 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 vim.api.nvim_set_keymap('n', '<leader>du', '<cmd>lua require("dapui").toggle()<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader>dw", ":lua add_to_watch(vim.fn.input('Watch variable: '))<CR>", { noremap = true, silent = true })
 
-function add_to_watch(expression)
-table.insert(dapui.watches, { expression = expression })
-end
+
+vim.fn.sign_define('DapBreakpoint', {
+  text = '🔴',
+  texthl = 'DiagnosticSignError',
+  linehl = '',
+  numhl = ''
+})
+
 
 -- Support local config.  If the file doesn't exist this will fail quietly, and
 -- if it does exist the file will be loaded.  All setup needs to be done as part
